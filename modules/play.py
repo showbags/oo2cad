@@ -56,7 +56,7 @@ def GoingSide( normal, limit = 0.5 ):
 
 
 def parenting():
-  parent_box = box(name="parent", size=(4,2,2))
+  parent_box = box(name="parent", size=(2,2,2))
   child_box = box(name="child", size=(2,1,1))
   #TODO: make a function for parenting
   #TODO: in that function we need to take the parents transform away from the child otherwise the following call will move it

@@ -105,4 +105,4 @@ if __name__ == "__main__":
     bpy.ops.object.select_all(action='SELECT')
     #bpy.ops.group.create(name="myGroup")
     #bpy.ops.object.group_link(group="myGroup")
-    bpy.ops.wm.save_as_mainfile(filepath='kitchen_out.blend')
+    bpy.ops.wm.save_as_mainfile(filepath='../blend/kitchen_out.blend')
