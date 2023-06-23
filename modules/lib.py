@@ -99,9 +99,9 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     bpy.ops.object.transform_apply(scale=True)
 
     # Use the origin if it has been supplied
-    if origin is not None: x += origin[0]
-    if origin is not None: y += origin[1]
-    if origin is not None: z += origin[2]
+    #if origin is not None: x += origin[0]
+    #if origin is not None: y += origin[1]
+    #if origin is not None: z += origin[2]
 
     x = x if left is None else minx(left)-size[0]
     x = x if right is None else minz(right)
@@ -111,9 +111,9 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     z = z if above is None else maxz(above)
 
     # We take the meaning of the specified coordinates to be the minimum point not the center
-    x = x + size[0] / 2
-    y = y + size[1] / 2
-    z = z + size[2] / 2
+    #x = x + size[0] / 2
+    #y = y + size[1] / 2
+    #z = z + size[2] / 2
 
     # Honour any alignments requested
     x = x if align_minx is None else minx(align_minx) + size[0] / 2
@@ -128,15 +128,14 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     y = y if align_midy is None else midy(align_midy)
     z = z if align_midz is None else midz(align_midz)
 
-
-
     ob.location = (x, y, z)
     bpy.ops.object.transform_apply(location=True)
 
     saved_location = bpy.context.scene.cursor.location.copy()
-    bpy.context.scene.cursor.location = (x, y, z)
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    bpy.context.scene.cursor.location = saved_location
+    if origin is not None:
+      bpy.context.scene.cursor.location = origin
+      bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+      bpy.context.scene.cursor.location = saved_location
 
     set_rotation(ob, rot)
 
@@ -391,39 +390,34 @@ def wall(xbricks, name="wall", double_brick=True, origin=(0, 0, 0), rot=(0, 0, 0
 
 
 def minx(ob):
-    return ob.location[0] - ob.dimensions[0] / 2
-
+    return ob[0] if isinstance(ob,tuple) else ob.location[0] - ob.dimensions[0] / 2
 
 def miny(ob):
-    return ob.location[1] - ob.dimensions[1] / 2
-
+    return ob[1] if isinstance(ob,tuple) else ob.location[1] - ob.dimensions[1] / 2
 
 def minz(ob):
-    return ob.location[2] - ob.dimensions[2] / 2
+    return ob[2] if isinstance(ob,tuple) else ob.location[2] - ob.dimensions[2] / 2
 
 
 def maxx(ob):
-    return minx(ob) + ob.dimensions[0]
-
+    return ob[0] if isinstance(ob,tuple) else minx(ob) + ob.dimensions[0]
 
 def maxy(ob):
-    return miny(ob) + ob.dimensions[1]
-
+    return ob[1] if isinstance(ob,tuple) else miny(ob) + ob.dimensions[1]
 
 def maxz(ob):
-    return minz(ob) + ob.dimensions[2]
+    return ob[2] if isinstance(ob,tuple) else minz(ob) + ob.dimensions[2]
 
 
 def midx(ob):
-    return (maxx(ob) + minx(ob)) / 2
-
+    return ob[0] if isinstance(ob,tuple) else (maxx(ob) + minx(ob)) / 2
 
 def midy(ob):
-    return (maxy(ob) + miny(ob)) / 2
-
+    return ob[1] if isinstance(ob,tuple) else (maxy(ob) + miny(ob)) / 2
 
 def midz(ob):
-    return (maxz(ob) + minz(ob)) / 2
+    return ob[2] if isinstance(ob,tuple) else (maxz(ob) + minz(ob)) / 2
+
 
 def size_x(ob):
   return ob.dimensions[0]

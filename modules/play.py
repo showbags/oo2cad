@@ -3,6 +3,7 @@ import bmesh
 from mathutils import Vector
 
 from lib import *
+from shapes import *
 
 def make_box():
   #table top
@@ -56,22 +57,25 @@ def GoingSide( normal, limit = 0.5 ):
 
 
 def parenting():
-  parent_box = box(name="parent", size=(2,2,2))
-  child_box = box(name="child", size=(2,1,1))
+  parent_box = box(name="parent", size=(2,2,2), align_minx=(0,0,0), origin=(1,2,3), rot=(0,0,45))
+  #child_box = box(name="child", size=(2,1,1), left=(0,0,0))
   #TODO: make a function for parenting
   #TODO: in that function we need to take the parents transform away from the child otherwise the following call will move it
-  child_box.parent=parent_box
+  #child_box.parent=parent_box
+
+def boxclass():
+  box = Box(name="first_box", size=(4,2,2), origin=(1,0,0))
 
 def run(origo):
   #bevel_edge()
   #scale_single_face()
   setup()
+  #boxclass()
   parenting()
 
 
-#if __name__ == "__main__":
-#  setup()
-#  run((0,0,0))
+if __name__ == "__main__":
+  run((0,0,0))
 
 
 #API concepts

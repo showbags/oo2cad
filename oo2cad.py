@@ -1,5 +1,5 @@
 import bpy
-import imp
+import importlib
 import os.path
 import play
 
@@ -15,7 +15,7 @@ class ModalTimerOperator(bpy.types.Operator):
     if event.type == 'TIMER':
       mod = os.path.getmtime('modules/play.py')
       if self._last_mod is None or mod>self._last_mod:
-        imp.reload(play)
+        importlib.reload(play)
         play.run((0,0,0))
         self._last_mod=mod
 
