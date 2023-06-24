@@ -79,15 +79,49 @@ def setup():
     removeall()
     bpy.context.preferences.view.show_splash = False
 
+def setLocation(ob, loc=(0,0,0),
+                minx=None, miny=None, minz=None,
+                maxx=None, maxy=None, maxz=None,
+                midx=None, midy=None, midz=None):
+  x=loc[0]
+  y=loc[1]
+  z=loc[2]
+
+  size=ob.dimensions
+
+  # Honour any alignments requested
+  x = x if minx is None else minx(minx) + size[0] / 2
+  y = y if miny is None else miny(miny) + size[1] / 2
+  z = z if minz is None else minz(minz) + size[2] / 2
+
+  x = x if maxx is None else maxx(maxx) - size[0] / 2
+  y = y if maxy is None else maxy(maxy) - size[1] / 2
+  z = z if maxz is None else maxz(maxz) - size[2] / 2
+
+  x = x if midx is None else midx(midx)
+  y = y if midy is None else midy(midy)
+  z = z if midz is None else midz(midz)
+
+  ob.location = (x, y, z)
+  bpy.ops.object.transform_apply(location=True)
+
+
+def setOrigin(ob, origin):
+  select_only(ob)
+  saved_location = bpy.context.scene.cursor.location.copy()
+  bpy.context.scene.cursor.location = origin
+  bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+  bpy.context.scene.cursor.location = saved_location
+
+def setRotation(obj, rot):
+  obj.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
+  # bpy.ops.object.transform_apply(rotation=True)
 
 def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
-        x=0, y=0, z=0,
-        align_minx=None, align_miny=None, align_minz=None,
-        align_maxx=None, align_maxy=None, align_maxz=None,
-        align_midx=None, align_midy=None, align_midz=None,
-        left=None, right=None,
-        before=None, after=None,
-        above=None, below=None):
+        at=(0, 0, 0),
+        minx=None, midx=None, maxx=None,
+        miny=None, midy=None, maxy=None,
+        minz=None, midz=None, maxz=None):
     bpy.ops.mesh.primitive_cube_add(enter_editmode=False)
 
     ob = bpy.context.object
@@ -98,51 +132,16 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     ob.scale = (size[0] / 2, size[1] / 2, size[2] / 2)
     bpy.ops.object.transform_apply(scale=True)
 
-    # Use the origin if it has been supplied
-    #if origin is not None: x += origin[0]
-    #if origin is not None: y += origin[1]
-    #if origin is not None: z += origin[2]
+    setLocation(ob,at, minx, midx, maxx, miny, midy, maxy, minz, midz, maxz)
 
-    x = x if left is None else minx(left)-size[0]
-    x = x if right is None else minz(right)
-    y = y if before is None else miny(before)-size[1]
-    y = y if after is None else miny(after)
-    z = z if below is None else minz(below)-size[2]
-    z = z if above is None else maxz(above)
-
-    # We take the meaning of the specified coordinates to be the minimum point not the center
-    #x = x + size[0] / 2
-    #y = y + size[1] / 2
-    #z = z + size[2] / 2
-
-    # Honour any alignments requested
-    x = x if align_minx is None else minx(align_minx) + size[0] / 2
-    y = y if align_miny is None else miny(align_miny) + size[1] / 2
-    z = z if align_minz is None else minz(align_minz) + size[2] / 2
-
-    x = x if align_maxx is None else maxx(align_maxx) - size[0] / 2
-    y = y if align_maxy is None else maxy(align_maxy) - size[1] / 2
-    z = z if align_maxz is None else maxz(align_maxz) - size[2] / 2
-
-    x = x if align_midx is None else midx(align_midx)
-    y = y if align_midy is None else midy(align_midy)
-    z = z if align_midz is None else midz(align_midz)
-
-    ob.location = (x, y, z)
-    bpy.ops.object.transform_apply(location=True)
-
-    saved_location = bpy.context.scene.cursor.location.copy()
     if origin is not None:
-      bpy.context.scene.cursor.location = origin
-      bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-      bpy.context.scene.cursor.location = saved_location
+      setOrigin(ob,origin)
 
     set_rotation(ob, rot)
 
     cleanup(ob)
 
     return ob
-
 
 def cylinder(name=None, origin=(0, 0, 0), size=(1, 1, 1), rot=(0, 0, 0)):
     bpy.ops.mesh.primitive_cylinder_add(
@@ -312,15 +311,6 @@ def nearest_edge(obj, location):
   found_location, normal, index, distance = tree.find_nearest( location )
 
   return mesh.edges[index]
-
-def set_rotation(obj, rot):
-    obj.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
-    # bpy.ops.object.transform_apply(rotation=True)
-
-
-def set_location(obj, loc):
-    obj.location = loc
-    bpy.ops.object.transform_apply(location=True)
 
 def shift(ob, shift_vec):
     ob.location.x+=shift_vec[0]
