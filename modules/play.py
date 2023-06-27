@@ -63,12 +63,14 @@ def parenting():
   #TODO: in that function we need to take the parents transform away from the child otherwise the following call will move it
   #child_box.parent=parent_box
 
-def boxclass():
-  box = Box(name="first_box", size=(4,2,2), origin=(0,0,0), rot=(0,0,0), at=(-2,0,0))
-
 def run():
   setup()
-  boxclass()
+  #box = Box(name="first box", size=(2,2,2), origin=(4,0,0), rot=(45,0,0), at=(3,0,0))
+  #box = Box(name="second box", size=(6,2,2), rot=(45,0,0), at=(1,0,0), origin=(3,0,0))
+  #box = Box(name="second box", size=(6,2,2), rot=(45,0,0), at=(6,0,0), origin=None)
+  box = Box(name="second box", size=(2,2,2), at=(6,2,2), rot=(0,45,0), origin=(2,0,0))
+  #box.setOrigin((10,0,0))
+  #box.setRotation((0,0,0))
 
 
 if __name__ == "__main__":

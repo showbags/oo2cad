@@ -7,7 +7,6 @@ IFS='x'
 #Read the split words into an array based on space delimiter
 read -a xy <<< "$dimen"
 
-echo $dimen
 w="${xy[0]}"
 h="${xy[1]}"
 w2=$(echo "$w/2" | bc)

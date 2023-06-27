@@ -64,16 +64,30 @@ def makeFaces(verts):
         faces.append(face)
     return faces
 
+def select(name):
+  return bpy.ops.object.select_pattern(pattern=name)
+
+def select(ob):
+  ob.select_set(True)
+
+def deselect(ob):
+  ob.select_set(False)
+
 def selectall():
   bpy.ops.object.select_all(action='SELECT')
 
 def deselectall():
   bpy.ops.object.select_all(action='DESELECT')
 
+def select_only(*objs):
+  for ob in bpy.data.objects:
+    ob.select_set(False)
+  for ob in objs:
+    ob.select_set(False)
+
 def removeall():
   selectall()
   bpy.ops.object.delete(use_global=False)
-
 
 def setup():
     removeall()
@@ -107,23 +121,25 @@ def setLocation(ob, loc=(0,0,0),
 
 
 def setOrigin(ob, origin):
-  select_only(ob)
+  select(ob)
   saved_location = bpy.context.scene.cursor.location.copy()
   bpy.context.scene.cursor.location = origin
   bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
   bpy.context.scene.cursor.location = saved_location
+  deselectall()
+
+
 
 def setRotation(obj, rot):
   obj.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
-  # bpy.ops.object.transform_apply(rotation=True)
+  bpy.ops.object.transform_apply(rotation=True)
 
-def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
-        at=(0, 0, 0),
+def box(name=None, size=(1, 1, 1), at=(0, 0, 0),
         minx=None, midx=None, maxx=None,
         miny=None, midy=None, maxy=None,
         minz=None, midz=None, maxz=None):
-    bpy.ops.mesh.primitive_cube_add(enter_editmode=False)
 
+    bpy.ops.mesh.primitive_cube_add(enter_editmode=False)
     ob = bpy.context.object
     name = 'Box' if name is None else name
     ob.name = name
@@ -132,14 +148,7 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     ob.scale = (size[0] / 2, size[1] / 2, size[2] / 2)
     bpy.ops.object.transform_apply(scale=True)
 
-    setLocation(ob,at, minx, midx, maxx, miny, midy, maxy, minz, midz, maxz)
-
-    if origin is not None:
-      setOrigin(ob,origin)
-
-    setRotation(ob, rot)
-
-    cleanup(ob)
+    #setLocation(ob, at, minx, midx, maxx, miny, midy, maxy, minz, midz, maxz)
 
     return ob
 
@@ -171,7 +180,7 @@ def remove(ob):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
     # select the object
-    ob.select_set(True)
+    select(ob)
     # delete all selected objects
     bpy.ops.object.delete()
 
@@ -338,11 +347,6 @@ def join_objects(objs, newname="joined"):
     bpy.context.object.name = newname
     return bpy.context.object
 
-
-def select(name):
-    return bpy.ops.object.select_pattern(pattern=name)
-
-
 def get(name):
     return bpy.data.objects[name]
 
@@ -351,13 +355,6 @@ def show_only(*objs):
         ob.hide_set(True)
     for ob in objs:
         ob.hide_set(False)
-
-
-def select_only(*objs):
-    for ob in bpy.data.objects:
-        ob.select_set(False)
-    for ob in objs:
-        ob.select_set(False)
 
 
 def frange(start, stop, step):
