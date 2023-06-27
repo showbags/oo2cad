@@ -137,7 +137,7 @@ def box(name=None, origin=None, size=(1, 1, 1), rot=(0, 0, 0),
     if origin is not None:
       setOrigin(ob,origin)
 
-    set_rotation(ob, rot)
+    setRotation(ob, rot)
 
     cleanup(ob)
 
@@ -161,7 +161,7 @@ def cylinder(name=None, origin=(0, 0, 0), size=(1, 1, 1), rot=(0, 0, 0)):
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
     bpy.context.scene.cursor.location = saved_location
 
-    set_rotation(ob, rot)
+    setRotation(ob, rot)
     return ob
 
 

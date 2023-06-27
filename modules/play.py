@@ -64,18 +64,15 @@ def parenting():
   #child_box.parent=parent_box
 
 def boxclass():
-  box = Box(name="first_box", size=(4,2,2), origin=(0,1,0), )
+  box = Box(name="first_box", size=(4,2,2), origin=(0,0,0), rot=(0,0,0), at=(-2,0,0))
 
-def run(origo):
-  #bevel_edge()
-  #scale_single_face()
+def run():
   setup()
   boxclass()
-  #parenting()
 
 
 if __name__ == "__main__":
-  run((0,0,0))
+  run()
 
 
 #API concepts

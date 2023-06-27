@@ -16,7 +16,7 @@ class ModalTimerOperator(bpy.types.Operator):
       mod = os.path.getmtime('modules/play.py')
       if self._last_mod is None or mod>self._last_mod:
         importlib.reload(play)
-        play.run((0,0,0))
+        play.run()
         self._last_mod=mod
 
     return {'PASS_THROUGH'}
