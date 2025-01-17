@@ -92,6 +92,21 @@ def removeall():
 def setup():
     removeall()
     bpy.context.preferences.view.show_splash = False
+    # Set to mm
+    bpy.context.scene.unit_settings.system = 'METRIC'
+    bpy.context.scene.unit_settings.scale_length = 0.001
+    # Get the active camera
+    camera = bpy.context.scene.camera
+
+    # Iterate through all areas in the current screen
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            # Access the 3D Viewport space
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    # Set the back clipping distance
+                    space.clip_end = 10000.0  # Set this to your desired value
+
 
 def setLocation(ob, loc=(0,0,0),
                 minx=None, miny=None, minz=None,
@@ -104,20 +119,22 @@ def setLocation(ob, loc=(0,0,0),
   size=ob.dimensions
 
   # Honour any alignments requested
-  x = x if minx is None else minx(minx) + size[0] / 2
-  y = y if miny is None else miny(miny) + size[1] / 2
-  z = z if minz is None else minz(minz) + size[2] / 2
+  x = x if minx is None else calcmaxx(minx) + size[0] / 2
+  y = y if miny is None else calcminy(miny) + size[1] / 2
+  z = z if minz is None else calcminz(minz) + size[2] / 2
 
-  x = x if maxx is None else maxx(maxx) - size[0] / 2
-  y = y if maxy is None else maxy(maxy) - size[1] / 2
-  z = z if maxz is None else maxz(maxz) - size[2] / 2
+  x = x if maxx is None else calcmaxx(maxx) - size[0] / 2
+  y = y if maxy is None else calcmaxy(maxy) - size[1] / 2
+  z = z if maxz is None else calcmaxz(maxz) - size[2] / 2
 
-  x = x if midx is None else midx(midx)
-  y = y if midy is None else midy(midy)
-  z = z if midz is None else midz(midz)
+  x = x if midx is None else calcmidx(midx)
+  y = y if midy is None else calcmidy(midy)
+  z = z if midz is None else calcmidz(midz)
 
+  print ('x,y,z: ',x,y,z)
   ob.location = (x, y, z)
   bpy.ops.object.transform_apply(location=True)
+  bpy.ops.object.transforms_to_deltas(mode='ALL')
 
 
 def setOrigin(ob, origin):
@@ -126,13 +143,13 @@ def setOrigin(ob, origin):
   bpy.context.scene.cursor.location = origin
   bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
   bpy.context.scene.cursor.location = saved_location
-  deselectall()
-
 
 
 def setRotation(obj, rot):
   obj.rotation_euler = (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2]))
-  bpy.ops.object.transform_apply(rotation=True)
+  #bpy.ops.object.transform_apply(rotation=True)
+  #bpy.ops.object.transforms_to_deltas(mode='ALL')
+  bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
 
 def box(name=None, size=(1, 1, 1), at=(0, 0, 0),
         minx=None, midx=None, maxx=None,
@@ -159,7 +176,7 @@ def cylinder(name=None, origin=(0, 0, 0), size=(1, 1, 1), rot=(0, 0, 0)):
     ob = bpy.context.object
     name = 'Cylinder' if name is None else name
     ob.name = name
-    # ob.show_name = True
+    ob.show_name = True
     ob.data.name = name + 'Mesh'
     ob.scale = (size[0] / 2, size[1] / 2, size[2] / 2)
     bpy.ops.object.transform_apply(scale=True)
@@ -197,6 +214,18 @@ def subtract(target, sub, keep=False):
 
     cleanup(target)
 
+def intersect(target, inter, keep=False):
+    # bpy.context.object = target
+    bpy.context.view_layer.objects.active = target
+    boo = target.modifiers.new('Booh', 'BOOLEAN')
+    boo.object = inter
+    boo.operation = 'INTERSECT'
+    bpy.ops.object.modifier_apply(modifier="Booh")
+    if not keep:
+        remove(inter)
+
+    cleanup(target)
+
 
 def vector_add(vec1, vec2):
     return vec1[0] + vec2[0], vec1[1] + vec2[1], vec1[2] + vec2[2]
@@ -222,39 +251,39 @@ def xmirror(target, offset=0, name=None):
   #bpy.ops.transform.mirror(constraint_axis=(True, False, False))
   ob.scale[0]*=-1
   if (offset>0):
-    set_max_x(ob, -maxx(target)-offset)
+    set_max_x(ob, -calcmaxx(target) - offset)
   elif (offset<0):
-    set_min_x(ob, -minx(target)-offset)
+    set_min_x(ob, -calcminx(target) - offset)
   else:
-    set_mid_x(ob, -midx(target)-offset)
+    set_mid_x(ob, -calcmidx(target) - offset)
   ob.location.x = ob.location.x *-1
 
 def set_min_x(ob, x):
-  shift(ob, (x-minx(ob), 0, 0))
+  shift(ob, (x - calcminx(ob), 0, 0))
 
 def set_min_y(ob, y):
-  shift(ob, (0, y-miny(ob), 0))
+  shift(ob, (0, y - calcminy(ob), 0))
 
 def set_min_z(ob, z):
-  shift(ob, (0, 0, z-minz(ob)))
+  shift(ob, (0, 0, z - calcminz(ob)))
 
 def set_max_x(ob, x):
-  shift(ob, (x-maxx(ob), 0, 0))
+  shift(ob, (x - calcmaxx(ob), 0, 0))
 
 def set_max_y(ob, y):
-  shift(ob, (0, y-maxy(ob), 0))
+  shift(ob, (0, y - calcmaxy(ob), 0))
 
 def set_max_z(ob, z):
-  shift(ob, (0, 0, z-maxz(ob)))
+  shift(ob, (0, 0, z - calcmaxz(ob)))
 
 def set_mid_x(ob, x):
-  shift(ob, (x-midx(ob), 0, 0))
+  shift(ob, (x - calcmidx(ob), 0, 0))
 
 def set_mid_y(ob, y):
-  shift(ob, (0, y-midy(ob), 0))
+  shift(ob, (0, y - calcmidy(ob), 0))
 
 def set_mid_z(ob, z):
-  shift(ob, (0, 0, z-midz(ob)))
+  shift(ob, (0, 0, z - calcmidz(ob)))
   
 
 def extrudex(dist):
@@ -376,34 +405,34 @@ def wall(xbricks, name="wall", double_brick=True, origin=(0, 0, 0), rot=(0, 0, 0
     return box(name, origin, (width, depth, height), rot)
 
 
-def minx(ob):
+def calcminx(ob):
     return ob[0] if isinstance(ob,tuple) else ob.location[0] - ob.dimensions[0] / 2
 
-def miny(ob):
+def calcminy(ob):
     return ob[1] if isinstance(ob,tuple) else ob.location[1] - ob.dimensions[1] / 2
 
-def minz(ob):
+def calcminz(ob):
     return ob[2] if isinstance(ob,tuple) else ob.location[2] - ob.dimensions[2] / 2
 
 
-def maxx(ob):
-    return ob[0] if isinstance(ob,tuple) else minx(ob) + ob.dimensions[0]
+def calcmaxx(ob):
+    return ob[0] if isinstance(ob,tuple) else calcminx(ob) + ob.dimensions[0]
 
-def maxy(ob):
-    return ob[1] if isinstance(ob,tuple) else miny(ob) + ob.dimensions[1]
+def calcmaxy(ob):
+    return ob[1] if isinstance(ob,tuple) else calcminy(ob) + ob.dimensions[1]
 
-def maxz(ob):
-    return ob[2] if isinstance(ob,tuple) else minz(ob) + ob.dimensions[2]
+def calcmaxz(ob):
+    return ob[2] if isinstance(ob,tuple) else calcminz(ob) + ob.dimensions[2]
 
 
-def midx(ob):
-    return ob[0] if isinstance(ob,tuple) else (maxx(ob) + minx(ob)) / 2
+def calcmidx(ob):
+    return ob[0] if isinstance(ob,tuple) else (calcmaxx(ob) + calcminx(ob)) / 2
 
-def midy(ob):
-    return ob[1] if isinstance(ob,tuple) else (maxy(ob) + miny(ob)) / 2
+def calcmidy(ob):
+    return ob[1] if isinstance(ob,tuple) else (calcmaxy(ob) + calcminy(ob)) / 2
 
-def midz(ob):
-    return ob[2] if isinstance(ob,tuple) else (maxz(ob) + minz(ob)) / 2
+def calcmidz(ob):
+    return ob[2] if isinstance(ob,tuple) else (calcmaxz(ob) + calcminz(ob)) / 2
 
 
 def size_x(ob):
